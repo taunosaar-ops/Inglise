@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sõnade Testija</title>
     <style>
         /* Põhiline lehe stiil ja taust */
         body {
@@ -22,9 +28,7 @@
             border-bottom: 2px solid #ecf0f1;
             padding-bottom: 15px;
         }
-        h2 {
-            color: #2c3e50;
-        }
+        h2 { color: #2c3e50; }
 
         /* Sektsioonide vahed */
         .menu, .game { margin-top: 20px; }
@@ -53,7 +57,7 @@
         .secondary-btn { background-color: #95a5a6; }
         .secondary-btn:hover { background-color: #7f8c8d; }
 
-        /* Valikmenüüd (select) */
+        /* Valikmenüüd */
         select {
             width: 100%; 
             padding: 12px; 
@@ -98,7 +102,7 @@
         /* Utiliit-klassid */
         .hidden { display: none; }
         
-        /* Statistika ja tagasiside mängu ajal */
+        /* Statistika ja tagasiside */
         #stats { 
             font-size: 18px;
             font-weight: bold; 
@@ -130,9 +134,8 @@
             transform: scale(1.1);
         }
 
-        /* Küsimuse tekst */
         #question-text {
-            font-size: 24px !important;
+            font-size: 24px;
             color: #2c3e50;
         }
 
@@ -164,7 +167,304 @@
             text-align: left; 
             vertical-align: middle; 
         }
-        .write-cell {
-            width: 50%;
-        }
+        .write-cell { width: 50%; }
     </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <h1>Sõnade Testija</h1>
+
+        <!-- PEAMENÜÜ -->
+        <div id="menu" class="menu">
+            <label for="book-select"><strong>Vali raamat:</strong></label>
+            <select id="book-select" onchange="updateUnitSelect()">
+                <option value="book1">Inglise keel 1</option>
+                <option value="book2">Inglise keel 2</option>
+            </select>
+
+            <label for="unit-select"><strong>Vali osa (Unit):</strong></label>
+            <select id="unit-select"></select>
+
+            <label for="mode-select"><strong>Testi tüüp:</strong></label>
+            <select id="mode-select">
+                <option value="write-ee">Kirjuta eesti keeles (ENG -> EST)</option>
+                <option value="write-en">Kirjuta inglise keeles (EST -> ENG)</option>
+                <option value="choice-ee">Valikvastused (ENG -> EST)</option>
+                <option value="choice-en">Valikvastused (EST -> ENG)</option>
+            </select>
+
+            <button onclick="startTest()">Alusta testi</button>
+            <button class="secondary-btn" onclick="openPrintView()">Prindi tööleht</button>
+        </div>
+
+        <!-- MÄNGUVAADE -->
+        <div id="game" class="game hidden">
+            <div id="stats">Küsimus 1 / 10 | Punkte: 0</div>
+            
+            <p>
+                <span id="question-text"></span>
+                <button class="audio-btn" onclick="speakWord()" title="Kuula hääldust">🔊</button>
+            </p>
+
+            <!-- Kirjutamise sisend -->
+            <div id="write-container">
+                <input type="text" id="answer-input" placeholder="Kirjuta vastus siia..." autocomplete="off">
+                <button onclick="checkWriteAnswer()">Kinnita vastus</button>
+            </div>
+
+            <!-- Valikvastuste ruudustik -->
+            <div id="choice-container" class="options-grid hidden"></div>
+
+            <div id="feedback"></div>
+            <button id="next-btn" class="hidden" onclick="nextQuestion()">Järgmine küsimus</button>
+            <button class="secondary-btn" onclick="showMenu()" style="margin-top: 20px;">Tagasi menüüsse</button>
+        </div>
+    </div>
+
+    <!-- PRINTIMISE VAADE -->
+    <div id="print-area" class="print-only">
+        <h2 id="print-title">Sõnade tööleht</h2>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Sõna / Väljend</th>
+                    <th class="write-cell">Tõlge / Kirjutusruum</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // SÕNAVARA ANDMEBAAS (CURRICULUM)
+        const CURRICULUM = {
+            book1: {
+                1: { name: "Unit 1", words: { "apple": "õun", "banana": "banaan", "cat": "kass", "dog": "koer", "house": "maja" } },
+                2: { name: "Unit 2", words: { "red": "punane", "blue": "sinine", "green": "roheline", "yellow": "kollane" } }
+            },
+            book2: {
+                1: { name: "Unit 1", words: { "family": "pere", "mother": "ema", "father": "isa", "brother": "vend", "sister": "õde" } },
+                2: { name: "Unit 2", words: { "school": "kool", "teacher": "õpetaja", "book": "raamat", "pen": "pliiats" } }
+            }
+        };
+
+        let currentWords = [];
+        let currentIndex = 0;
+        let score = 0;
+        let currentMode = '';
+        let currentTargetWord = '';
+
+        // Täidab uniti valiku vastavalt valitud raamatule
+        function updateUnitSelect() {
+            const bookKey = document.getElementById('book-select').value;
+            const unitSelect = document.getElementById('unit-select');
+            unitSelect.innerHTML = '<option value="all">Kõik unitid koos</option>';
+            
+            const units = CURRICULUM[bookKey];
+            for (let u in units) {
+                let opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = units[u].name;
+                unitSelect.appendChild(opt);
+            }
+        }
+
+        // Alustab testi
+        function startTest() {
+            const bookKey = document.getElementById('book-select').value;
+            const unitVal = document.getElementById('unit-select').value;
+            currentMode = document.getElementById('mode-select').value;
+
+            let sourceDict = {};
+            if (unitVal === 'all') {
+                for (let u in CURRICULUM[bookKey]) {
+                    Object.assign(sourceDict, CURRICULUM[bookKey][u].words);
+                }
+            } else {
+                sourceDict = CURRICULUM[bookKey][unitVal].words;
+            }
+
+            currentWords = Object.entries(sourceDict);
+            if (currentWords.length === 0) {
+                alert("Selles osas puuduvad sõnad!");
+                return;
+            }
+
+            // Segame sõnad juhuslikku järjekorda
+            currentWords.sort(() => Math.random() - 0.5);
+
+            currentIndex = 0;
+            score = 0;
+
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+
+            // Enter-klahviga vastuse kinnitamine
+            document.getElementById('answer-input').addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    checkWriteAnswer();
+                }
+            });
+
+            showQuestion();
+        }
+
+        // Kuvab praeguse küsimuse
+        function showQuestion() {
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('next-btn').classList.add('hidden');
+            
+            const [eng, est] = currentWords[currentIndex];
+            const isToEE = currentMode.endsWith('-ee');
+            
+            const questionPrompt = isToEE ? eng : est;
+            currentTargetWord = isToEE ? eng : est; // Kõne jaoks
+
+            document.getElementById('question-text').textContent = questionPrompt;
+            document.getElementById('stats').textContent = `Küsimus ${currentIndex + 1} / ${currentWords.length} | Punkte: ${score}`;
+
+            if (currentMode.startsWith('write')) {
+                document.getElementById('write-container').classList.remove('hidden');
+                document.getElementById('choice-container').classList.add('hidden');
+                const input = document.getElementById('answer-input');
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+            } else {
+                document.getElementById('write-container').classList.add('hidden');
+                document.getElementById('choice-container').classList.remove('hidden');
+                generateChoices(isToEE ? est : eng, isToEE);
+            }
+        }
+
+        // Tekitab valikvastused
+        function generateChoices(correctAnswer, isToEE) {
+            const container = document.getElementById('choice-container');
+            container.innerHTML = '';
+
+            let allAnswers = currentWords.map(item => isToEE ? item[1] : item[0]);
+            let choices = [correctAnswer];
+
+            while (choices.length < 4 && choices.length < allAnswers.length) {
+                let randomAns = allAnswers[Math.floor(Math.random() * allAnswers.length)];
+                if (!choices.includes(randomAns)) {
+                    choices.push(randomAns);
+                }
+            }
+
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(choice => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = choice;
+                btn.onclick = () => checkChoiceAnswer(choice, correctAnswer);
+                container.appendChild(btn);
+            });
+        }
+
+        // Kirjutamise kontroll
+        function checkWriteAnswer() {
+            const input = document.getElementById('answer-input');
+            if (input.disabled) return;
+
+            const userAns = input.value.trim().toLowerCase();
+            const [eng, est] = currentWords[currentIndex];
+            const correctAns = currentMode.endsWith('-ee') ? est : eng;
+
+            input.disabled = true;
+
+            if (userAns === correctAns.toLowerCase()) {
+                score++;
+                document.getElementById('feedback').textContent = '✅ Õige!';
+                document.getElementById('feedback').style.color = '#2ecc71';
+            } else {
+                document.getElementById('feedback').textContent = `❌ Vale! Õige vastus: ${correctAns}`;
+                document.getElementById('feedback').style.color = '#e74c3c';
+            }
+
+            document.getElementById('next-btn').classList.remove('hidden');
+            document.getElementById('next-btn').focus();
+        }
+
+        // Valikvastuse kontroll
+        function checkChoiceAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+
+            if (selected === correct) {
+                score++;
+                document.getElementById('feedback').textContent = '✅ Õige!';
+                document.getElementById('feedback').style.color = '#2ecc71';
+            } else {
+                document.getElementById('feedback').textContent = `❌ Vale! Õige vastus: ${correct}`;
+                document.getElementById('feedback').style.color = '#e74c3c';
+            }
+
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        // Järgmine küsimus
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < currentWords.length) {
+                showQuestion();
+            } else {
+                document.getElementById('question-text').textContent = 'Test lõpetatud!';
+                document.getElementById('write-container').classList.add('hidden');
+                document.getElementById('choice-container').classList.add('hidden');
+                document.getElementById('feedback').textContent = `Sinu lõpptulemus: ${score} / ${currentWords.length}`;
+                document.getElementById('feedback').style.color = '#2c3e50';
+                document.getElementById('next-btn').classList.add('hidden');
+            }
+        }
+
+        // Teksti hääldamine
+        function speakWord() {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(currentTargetWord);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Sinu brauser ei toeta teksti hääldamist.");
+            }
+        }
+
+        // Tagasi menüüsse
+        function showMenu() {
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+        }
+
+        // Printimise vaade
+        function openPrintView() {
+            const bookKey = document.getElementById('book-select').value;
+            const unitVal = document.getElementById('unit-select').value;
+
+            let sourceDict = {};
+            if (unitVal === 'all') {
+                for (let u in CURRICULUM[bookKey]) {
+                    Object.assign(sourceDict, CURRICULUM[bookKey][u].words);
+                }
+            } else {
+                sourceDict = CURRICULUM[bookKey][unitVal].words;
+            }
+
+            const tableBody = document.getElementById('print-table-body');
+            tableBody.innerHTML = '';
+
+            for (let eng in sourceDict) {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${eng}</strong></td><td>${sourceDict[eng]}</td>`;
+                tableBody.appendChild(tr);
+            }
+
+            window.print();
+        }
+
+        // Algseisu laadimine
+        updateUnitSelect();
+    </script>
+</body>
+</html>
