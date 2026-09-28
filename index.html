@@ -34,15 +34,13 @@
 
         <div id="menu">
             <label><strong>Vali raamat:</strong></label>
-            <select id="book-select" onchange="updateUnits()">
-                <option value="book1">Book 1</option>
-                <option value="book2">Book 2</option>
-                <option value="book3">Book 3</option>
-                <option value="book4">Book 4</option>
-            </select>
+            <select id="book-select" onchange="updateUnits()"></select>
 
-            <label><strong>Vali osa:</strong></label>
-            <select id="unit-select"></select>
+            <label><strong>Vali osa (Unit):</strong></label>
+            <select id="unit-select" onchange="updateRanges()"></select>
+
+            <label><strong>Vali sõnade vahemik:</strong></label>
+            <select id="range-select"></select>
 
             <label><strong>Režiim:</strong></label>
             <select id="mode-select">
@@ -91,29 +89,39 @@
     </div>
 
     <script>
-        // SIIN ON TEIE SÕNAVARA ANDMED (Book 1 - 4)
-        var DATA = {
-            book1: {
-                1: { name: "Unit 1", words: { "apple": "õun", "banana": "banaan", "cat": "kass", "dog": "koer" } },
-                2: { name: "Unit 2", words: { "red": "punane", "blue": "sinine", "green": "roheline" } }
-            },
-            book2: {
-                1: { name: "Unit 1", words: { "house": "maja", "car": "auto", "tree": "puu" } },
-                2: { name: "Unit 2", words: { "book": "raamat", "pen": "pliiats", "desk": "laud" } }
-            },
-            book3: {
-                1: { name: "Unit 1", words: { "summer": "suvi", "winter": "talv", "sun": "päike" } }
-            },
-            book4: {
-                1: { name: "Unit 1", words: { "city": "linn", "street": "tänav", "bridge": "sild" } }
-            }
-        };
+        // ==========================================
+        // KOPEERI OMA WORDS.JSON SISU SIIA VAHELE:
+        // ==========================================
+        var DATA = 
+
+/* KOPEERI OMA WORDS.JSON SISU SIIA VAHELE */
+{
+    "book1": {
+        "1": { "name": "Unit 1", "words": { "apple": "õun", "banana": "banaan", "cat": "kass", "dog": "koer" } }
+    }
+}
+/* KUNI SIIANI */
+
+;
+        // ==========================================
 
         var words = [];
         var index = 0;
         var score = 0;
         var mode = '';
         var currentAudioWord = '';
+
+        function initBooks() {
+            var bSelect = document.getElementById('book-select');
+            bSelect.innerHTML = '';
+            for (var bookKey in DATA) {
+                var opt = document.createElement('option');
+                opt.value = bookKey;
+                opt.textContent = bookKey.toUpperCase().replace('BOOK', 'Book ');
+                bSelect.appendChild(opt);
+            }
+            updateUnits();
+        }
 
         function updateUnits() {
             var b = document.getElementById('book-select').value;
@@ -124,29 +132,68 @@
                 for (var u in DATA[b]) {
                     var opt = document.createElement('option');
                     opt.value = u;
-                    opt.textContent = DATA[b][u].name;
+                    opt.textContent = DATA[b][u].name || ('Unit ' + u);
                     uSelect.appendChild(opt);
+                }
+            }
+            updateRanges();
+        }
+
+        function updateRanges() {
+            var b = document.getElementById('book-select').value;
+            var u = document.getElementById('unit-select').value;
+            var rSelect = document.getElementById('range-select');
+            rSelect.innerHTML = '<option value="all">Kõik sõnad</option>';
+
+            var dict = getSelectedDict(b, u);
+            var total = Object.keys(dict).length;
+            var step = 10; // Sõnade arv ühes vahemikus
+
+            if (total > step) {
+                for (var i = 0; i < total; i += step) {
+                    var startWord = i + 1;
+                    var endWord = Math.min(i + step, total);
+                    var opt = document.createElement('option');
+                    // Salvestame indeksi piires: eespool 0-põhine algus, tagapool lõpp
+                    opt.value = i + '-' + endWord;
+                    opt.textContent = 'Sõnad ' + startWord + '–' + endWord + ' (kokku ' + (endWord - startWord + 1) + ')';
+                    rSelect.appendChild(opt);
                 }
             }
         }
 
-        function startTest() {
-            var b = document.getElementById('book-select').value;
-            var u = document.getElementById('unit-select').value;
-            mode = document.getElementById('mode-select').value;
-            
+        function getSelectedDict(b, u) {
             var dict = {};
             if (u === 'all') {
                 for (var unitKey in DATA[b]) {
                     Object.assign(dict, DATA[b][unitKey].words);
                 }
-            } else {
+            } else if (DATA[b] && DATA[b][u]) {
                 dict = DATA[b][u].words;
             }
+            return dict;
+        }
 
-            words = Object.entries(dict).sort(function() { return Math.random() - 0.5; });
+        function startTest() {
+            var b = document.getElementById('book-select').value;
+            var u = document.getElementById('unit-select').value;
+            var r = document.getElementById('range-select').value;
+            mode = document.getElementById('mode-select').value;
+            
+            var dict = getSelectedDict(b, u);
+            var allEntries = Object.entries(dict);
+
+            if (r !== 'all') {
+                var parts = r.split('-');
+                var startIdx = parseInt(parts[0]);
+                var endIdx = parseInt(parts[1]);
+                allEntries = allEntries.slice(startIdx, endIdx);
+            }
+
+            words = allEntries.sort(function() { return Math.random() - 0.5; });
+
             if (words.length === 0) {
-                alert("Selles osas puuduvad sõnad!");
+                alert("Valitud osas või vahemikus puuduvad sõnad!");
                 return;
             }
 
@@ -266,27 +313,29 @@
         function openPrintView() {
             var b = document.getElementById('book-select').value;
             var u = document.getElementById('unit-select').value;
-            var dict = {};
+            var r = document.getElementById('range-select').value;
+            
+            var dict = getSelectedDict(b, u);
+            var entries = Object.entries(dict);
 
-            if (u === 'all') {
-                for (var unitKey in DATA[b]) {
-                    Object.assign(dict, DATA[b][unitKey].words);
-                }
-            } else {
-                dict = DATA[b][u].words;
+            if (r !== 'all') {
+                var parts = r.split('-');
+                var startIdx = parseInt(parts[0]);
+                var endIdx = parseInt(parts[1]);
+                entries = entries.slice(startIdx, endIdx);
             }
 
             var tbody = document.getElementById('print-table-body');
             tbody.innerHTML = '';
-            for (var eng in dict) {
+            entries.forEach(function(pair) {
                 var tr = document.createElement('tr');
-                tr.innerHTML = '<td><strong>' + eng + '</strong></td><td>' + dict[eng] + '</td>';
+                tr.innerHTML = '<td><strong>' + pair[0] + '</strong></td><td>' + pair[1] + '</td>';
                 tbody.appendChild(tr);
-            }
+            });
             window.print();
         }
 
-        updateUnits();
+        initBooks();
     </script>
 </body>
 </html>
