@@ -1,388 +1,237 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inglise keele sõnad</title>
-  <style>
-    :root {
-      --primary: #007bff;
-      --primary-hover: #0056b3;
-      --bg: #f4f4f9;
-      --card-bg: #ffffff;
-      --text: #333333;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: var(--bg);
-      color: var(--text);
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-      justify-content: space-between;
-    }
-
-    .search-filter {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      flex: 1;
-      min-width: 280px;
-    }
-
-    input[type="text"], select {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      min-width: 150px;
-    }
-
-    .btn-toggle {
-      padding: 10px 16px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    .btn-toggle:hover {
-      background-color: var(--primary-hover);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card-bg);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    tr:hover {
-      background-color: #f8f9fa;
-    }
-
-    .audio-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      margin-left: 8px;
-    }
-
-    #flashcard-view {
-      display: none;
-      text-align: center;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 40px 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin: 20px auto;
-      max-width: 400px;
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.2s;
-    }
-
-    .card:active {
-      transform: scale(0.98);
-    }
-
-    .card .word {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .card .translation {
-      font-size: 18px;
-      color: #666;
-      display: none;
-    }
-
-    .card-nav {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-    }
-
-    .card-nav button {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background-color: #e0e0e0;
-      cursor: pointer;
-    }
-
-    .card-nav button:hover {
-      background-color: #d0d0d0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sõnavara Testija</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        h1 { margin-top: 0; color: #2c3e50; font-size: 24px; }
+        .control-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; font-size: 14px; }
+        select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; outline: none; transition: 0.2s; }
+        select:focus, input:focus { border-color: #3498db; }
+        .range-inputs { display: flex; gap: 10px; }
+        button { width: 100%; background-color: #2ecc71; color: white; border: none; padding: 12px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:hover { background-color: #27ae60; }
+        .hidden { display: none; }
+        .word-box { background: #ebf5fb; border-left: 5px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .feedback { margin-top: 15px; font-weight: bold; font-size: 18px; min-height: 27px; }
+        .correct { color: #2ecc71; }
+        .incorrect { color: #e74c3c; }
+        .score { font-size: 14px; color: #7f8c8d; margin-top: 10px; }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Inglise-Eesti sõnavara</h1>
-
-    <div class="controls">
-      <div class="search-filter">
-        <input type="text" id="search-input" placeholder="Otsi sõna..." oninput="filterWords()">
-        
-        <!-- Raamatu filter -->
-        <select id="book-filter" onchange="onBookChange()">
-          <option value="all">Kõik raamatud</option>
+<div class="card" id="setup-card">
+    <h1>Sõnavara Test</h1>
+    
+    <div class="control-group">
+        <label for="book-select">Vali raamat:</label>
+        <select id="book-select" onchange="updateUnits()">
+            <option value="Book 1">Book 1</option>
         </select>
+    </div>
 
-        <!-- Uniti filter -->
-        <select id="unit-filter" onchange="filterWords()">
-          <option value="all">Kõik osad</option>
+    <div class="control-group">
+        <label for="unit-select">Vali Unit:</label>
+        <select id="unit-select" onchange="updateMaxWords()">
+            <!-- Täidetakse automaatselt JS-is -->
         </select>
-      </div>
-      <button class="btn-toggle" onclick="toggleView()" id="view-btn">Mälukaardid 🎴</button>
     </div>
 
-    <!-- Tabeli vaade -->
-    <div id="table-view">
-      <table id="vocabulary-table">
-        <thead>
-          <tr>
-            <th>Raamat</th>
-            <th>Osa</th>
-            <th>Inglise keel</th>
-            <th>Eesti keel</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Sõnad laetakse siia -->
-        </tbody>
-      </table>
+    <div class="control-group">
+        <label>Sõnade vahemik (Unitis kokku: <span id="max-words-count">0</span> sõna):</label>
+        <div class="range-inputs">
+            <input type="number" id="start-word" value="1" min="1">
+            <input type="number" id="end-word" value="10" min="1">
+        </div>
     </div>
 
-    <!-- Mälukaartide vaade -->
-    <div id="flashcard-view">
-      <div class="card" onclick="flipCard()">
-        <div class="word" id="card-word">Sõna</div>
-        <div class="translation" id="card-translation">Tõlge</div>
-      </div>
-      <div class="card-nav">
-        <button onclick="prevCard()">◀ Eelmine</button>
-        <button onclick="speakCurrentCard()">🔊 Kuula</button>
-        <button onclick="nextCard()">Järgmine ▶</button>
-      </div>
+    <button onclick="startTest()">Alusta testi</button>
+</div>
+
+<div class="card hidden" id="test-card">
+    <div style="text-align: right;"><button onclick="resetTest()" style="width: auto; padding: 5px 10px; font-size: 12px; background: #95a5a6;">Katkesta</button></div>
+    <div class="score">Progress: <span id="current-index">0</span> / <span id="total-test-words">0</span></div>
+    
+    <div class="word-box" id="prompt-word">Sõna</div>
+
+    <div class="control-group">
+        <input type="text" id="answer-input" placeholder="Kirjuta tõlge eesti keeles..." autocomplete="off">
     </div>
-  </div>
 
-  <script>
-    let allWords = [];
-    let filteredWords = [];
-    let currentCardIndex = 0;
-    let isTableView = true;
+    <button id="submit-btn" onclick="checkAnswer()">Kinnita</button>
+    <div class="feedback" id="feedback"></div>
+</div>
 
-    async function loadWords() {
-      try {
-        const response = await fetch('words.json');
-        allWords = await response.json();
-        filteredWords = [...allWords];
-
-        populateBookFilter();
-        populateUnitFilter();
-        renderTable();
-      } catch (error) {
-        console.error('Viga sõnade laadimisel:', error);
-      }
+<script>
+// Sõnade andmebaas (PDF-i põhjal)
+const vocabularyData = {
+    "Book 1": {
+        "Unit 1: Hello": [
+            { en: "unit", et: "õppetükk" },
+            { en: "Hello", et: "Tere!" },
+            { en: "Hi", et: "Tere!" },
+            { en: "I", et: "mina, ma" },
+            { en: "am", et: "olen" },
+            { en: "I am", et: "ma olen" },
+            { en: "I'm from", et: "Ma olen pärit" },
+            { en: "Britain", et: "Britannia" },
+            { en: "America", et: "Ameerika" },
+            { en: "Finland", et: "Soome" },
+            { en: "Estonia", et: "Eesti" },
+            { en: "and", et: "ja, ning" },
+            { en: "you", et: "sina, teie" },
+            { en: "he", et: "tema" },
+            { en: "she", et: "tema" },
+            { en: "this", et: "see" },
+            { en: "is", et: "on" },
+            { en: "He's / She's from", et: "Ta on pärit" },
+            { en: "good", et: "hea" },
+            { en: "morning", et: "hommik" },
+            { en: "Good morning!", et: "Tere hommikust!" },
+            { en: "Miss", et: "preili" },
+            { en: "what", et: "mis" },
+            { en: "what's", et: "mis on" },
+            { en: "your", et: "sinu; teie" },
+            { en: "name", et: "nimi" },
+            { en: "Sorry.", et: "Vabandust." },
+            { en: "late", et: "hilja" },
+            { en: "Sorry, I'm late.", et: "Vabandust, et ma hilinesin." },
+            { en: "that", et: "see" },
+            { en: "that's", et: "see on" },
+            { en: "OK", et: "okei, korras, hästi" },
+            { en: "That's OK.", et: "Sellest pole midagi." },
+            { en: "Goodbye!", et: "Head päeva! Head aega!" },
+            { en: "Bye-bye!", et: "Head päeva! Head aega!" }
+        ],
+        "Unit 2: Family": [
+            { en: "family", et: "perekond" },
+            { en: "dad", et: "isa" },
+            { en: "my", et: "minu" },
+            { en: "friend", et: "sõber" },
+            { en: "Mr", et: "härra" },
+            { en: "dog", et: "koer" },
+            { en: "mum", et: "ema" },
+            { en: "granny", et: "vanaema" },
+            { en: "grandad", et: "vanaisa" },
+            { en: "brother", et: "vend" }
+        ]
     }
+};
 
-    function populateBookFilter() {
-      const bookSelect = document.getElementById('book-filter');
-      const books = [...new Set(allWords.map(w => w.book || 'Book 1'))];
-      
-      books.forEach(book => {
-        const option = document.createElement('option');
-        option.value = book;
-        option.textContent = book;
-        bookSelect.appendChild(option);
-      });
-    }
+let activeWords = [];
+let currentIndex = 0;
+let correctAnswers = 0;
 
-    function onBookChange() {
-      populateUnitFilter();
-      filterWords();
-    }
+function init() {
+    updateUnits();
+}
 
-    function populateUnitFilter() {
-      const selectedBook = document.getElementById('book-filter').value;
-      const unitSelect = document.getElementById('unit-filter');
-      
-      unitSelect.innerHTML = '<option value="all">Kõik osad</option>';
-
-      let availableWords = allWords;
-      if (selectedBook !== 'all') {
-        availableWords = allWords.filter(w => (w.book || 'Book 1') === selectedBook);
-      }
-
-      const units = [...new Set(availableWords.map(w => w.unit))];
-      units.forEach(unit => {
-        const option = document.createElement('option');
+function updateUnits() {
+    const book = document.getElementById("book-select").value;
+    const unitSelect = document.getElementById("unit-select");
+    unitSelect.innerHTML = "";
+    
+    for (let unit in vocabularyData[book]) {
+        let option = document.createElement("option");
         option.value = unit;
         option.textContent = unit;
         unitSelect.appendChild(option);
-      });
     }
+    updateMaxWords();
+}
 
-    function renderTable() {
-      const tbody = document.querySelector('#vocabulary-table tbody');
-      tbody.innerHTML = '';
+function updateMaxWords() {
+    const book = document.getElementById("book-select").value;
+    const unit = document.getElementById("unit-select").value;
+    if (!unit) return;
+    
+    const count = vocabularyData[book][unit].length;
+    document.getElementById("max-words-count").textContent = count;
+    document.getElementById("end-word").value = Math.min(10, count);
+}
 
-      filteredWords.forEach(item => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${item.book || 'Book 1'}</td>
-          <td>${item.unit}</td>
-          <td>
-            <strong>${item.english}</strong>
-            <button class="audio-btn" onclick="speak('${item.english.replace(/'/g, "\\'")}')">🔊</button>
-          </td>
-          <td>${item.estonian}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+function startTest() {
+    const book = document.getElementById("book-select").value;
+    const unit = document.getElementById("unit-select").value;
+    const start = parseInt(document.getElementById("start-word").value) - 1;
+    const end = parseInt(document.getElementById("end-word").value);
 
-    function filterWords() {
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const selectedBook = document.getElementById('book-filter').value;
-      const selectedUnit = document.getElementById('unit-filter').value;
+    const fullList = vocabularyData[book][unit];
+    activeWords = fullList.slice(start, end);
 
-      filteredWords = allWords.filter(item => {
-        const matchesSearch = item.english.toLowerCase().includes(search) || 
-                              item.estonian.toLowerCase().includes(search);
-        const matchesBook = selectedBook === 'all' || (item.book || 'Book 1') === selectedBook;
-        const matchesUnit = selectedUnit === 'all' || item.unit === selectedUnit;
-
-        return matchesSearch && matchesBook && matchesUnit;
-      });
-
-      if (isTableView) {
-        renderTable();
-      } else {
-        currentCardIndex = 0;
-        showCard();
-      }
-    }
-
-    function speak(text) {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-
-    function toggleView() {
-      isTableView = !isTableView;
-      const tableView = document.getElementById('table-view');
-      const cardView = document.getElementById('flashcard-view');
-      const btn = document.getElementById('view-btn');
-
-      if (isTableView) {
-        tableView.style.display = 'block';
-        cardView.style.display = 'none';
-        btn.textContent = 'Mälukaardid 🎴';
-        renderTable();
-      } else {
-        tableView.style.display = 'none';
-        cardView.style.display = 'block';
-        btn.textContent = 'Tabeli vaade 📋';
-        currentCardIndex = 0;
-        showCard();
-      }
-    }
-
-    function showCard() {
-      if (filteredWords.length === 0) {
-        document.getElementById('card-word').textContent = 'Sõnu ei leitud';
-        document.getElementById('card-translation').style.display = 'none';
+    if (activeWords.length === 0) {
+        alert("Valitud vahemikus ei ole sõnu!");
         return;
-      }
-      const card = filteredWords[currentCardIndex];
-      document.getElementById('card-word').textContent = card.english;
-      const translation = document.getElementById('card-translation');
-      translation.textContent = card.estonian;
-      translation.style.display = 'none';
     }
 
-    function flipCard() {
-      const translation = document.getElementById('card-translation');
-      translation.style.display = translation.style.display === 'none' ? 'block' : 'none';
+    currentIndex = 0;
+    correctAnswers = 0;
+
+    document.getElementById("setup-card").classList.add("hidden");
+    document.getElementById("test-card").classList.remove("hidden");
+    document.getElementById("total-test-words").textContent = activeWords.length;
+
+    showWord();
+}
+
+function showWord() {
+    if (currentIndex >= activeWords.length) {
+        alert(`Test läbi! Tulemus: ${correctAnswers} / ${activeWords.length}`);
+        resetTest();
+        return;
     }
 
-    function nextCard() {
-      if (filteredWords.length > 0) {
-        currentCardIndex = (currentCardIndex + 1) % filteredWords.length;
-        showCard();
-      }
-    }
+    document.getElementById("current-index").textContent = currentIndex + 1;
+    document.getElementById("prompt-word").textContent = activeWords[currentIndex].en;
+    document.getElementById("answer-input").value = "";
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("answer-input").focus();
+}
 
-    function prevCard() {
-      if (filteredWords.length > 0) {
-        currentCardIndex = (currentCardIndex - 1 + filteredWords.length) % filteredWords.length;
-        showCard();
-      }
-    }
+function checkAnswer() {
+    const input = document.getElementById("answer-input").value.trim().toLowerCase();
+    const correct = activeWords[currentIndex].et.toLowerCase();
+    const feedback = document.getElementById("feedback");
 
-    function speakCurrentCard() {
-      if (filteredWords.length > 0) {
-        speak(filteredWords[currentCardIndex].english);
-      }
+    // Lihtsustatud kontroll (kontrollib kas vastus sisaldub õigetes variantides)
+    if (input !== "" && correct.includes(input)) {
+        feedback.textContent = "Õige!";
+        feedback.className = "feedback correct";
+        correctAnswers++;
+        setTimeout(() => {
+            currentIndex++;
+            showWord();
+        }, 1000);
+    } else {
+        feedback.textContent = `Vale! Õige vaste: ${activeWords[currentIndex].et}`;
+        feedback.className = "feedback incorrect";
+        setTimeout(() => {
+            currentIndex++;
+            showWord();
+        }, 2500);
     }
+}
 
-    loadWords();
-  </script>
+// Enter klahviga vastamine
+document.getElementById("answer-input").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        checkAnswer();
+    }
+});
+
+function resetTest() {
+    document.getElementById("test-card").classList.add("hidden");
+    document.getElementById("setup-card").classList.remove("hidden");
+}
+
+window.onload = init;
+</script>
 
 </body>
 </html>
