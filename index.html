@@ -22,7 +22,7 @@
     }
 
     .container {
-      max-width: 850px;
+      max-width: 900px;
       margin: 0 auto;
     }
 
@@ -31,7 +31,6 @@
       margin-bottom: 20px;
     }
 
-    /* Juhtnupud ja filtrid */
     .controls {
       display: flex;
       flex-wrap: wrap;
@@ -42,6 +41,7 @@
 
     .search-filter {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       flex: 1;
       min-width: 280px;
@@ -56,6 +56,7 @@
 
     input[type="text"] {
       flex: 1;
+      min-width: 150px;
     }
 
     .btn-toggle {
@@ -73,7 +74,6 @@
       background-color: var(--primary-hover);
     }
 
-    /* Tabeli stiilid */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -104,10 +104,8 @@
       cursor: pointer;
       font-size: 16px;
       margin-left: 8px;
-      vertical-align: middle;
     }
 
-    /* Mälukaartide režiim */
     #flashcard-view {
       display: none;
       text-align: center;
@@ -174,6 +172,13 @@
     <div class="controls">
       <div class="search-filter">
         <input type="text" id="search-input" placeholder="Otsi sõna..." oninput="filterWords()">
+        
+        <!-- Raamatu filter -->
+        <select id="book-filter" onchange="onBookChange()">
+          <option value="all">Kõik raamatud</option>
+        </select>
+
+        <!-- Uniti filter -->
         <select id="unit-filter" onchange="filterWords()">
           <option value="all">Kõik osad</option>
         </select>
@@ -186,13 +191,14 @@
       <table id="vocabulary-table">
         <thead>
           <tr>
+            <th>Raamat</th>
             <th>Osa</th>
             <th>Inglise keel</th>
             <th>Eesti keel</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Sõnad laetakse siia automaatselt -->
+          <!-- Sõnad laetakse siia -->
         </tbody>
       </table>
     </div>
@@ -217,13 +223,13 @@
     let currentCardIndex = 0;
     let isTableView = true;
 
-    // Lae sõnad JSON failist
     async function loadWords() {
       try {
         const response = await fetch('words.json');
         allWords = await response.json();
         filteredWords = [...allWords];
 
+        populateBookFilter();
         populateUnitFilter();
         renderTable();
       } catch (error) {
@@ -231,11 +237,35 @@
       }
     }
 
-    // Täida Uniti filter automaatselt olemasolevate osadega
-    function populateUnitFilter() {
-      const unitSelect = document.getElementById('unit-filter');
-      const units = [...new Set(allWords.map(w => w.unit))];
+    function populateBookFilter() {
+      const bookSelect = document.getElementById('book-filter');
+      const books = [...new Set(allWords.map(w => w.book || 'Book 1'))];
       
+      books.forEach(book => {
+        const option = document.createElement('option');
+        option.value = book;
+        option.textContent = book;
+        bookSelect.appendChild(option);
+      });
+    }
+
+    function onBookChange() {
+      populateUnitFilter();
+      filterWords();
+    }
+
+    function populateUnitFilter() {
+      const selectedBook = document.getElementById('book-filter').value;
+      const unitSelect = document.getElementById('unit-filter');
+      
+      unitSelect.innerHTML = '<option value="all">Kõik osad</option>';
+
+      let availableWords = allWords;
+      if (selectedBook !== 'all') {
+        availableWords = allWords.filter(w => (w.book || 'Book 1') === selectedBook);
+      }
+
+      const units = [...new Set(availableWords.map(w => w.unit))];
       units.forEach(unit => {
         const option = document.createElement('option');
         option.value = unit;
@@ -244,7 +274,6 @@
       });
     }
 
-    // Kuva sõnad tabelis
     function renderTable() {
       const tbody = document.querySelector('#vocabulary-table tbody');
       tbody.innerHTML = '';
@@ -252,6 +281,7 @@
       filteredWords.forEach(item => {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td>${item.book || 'Book 1'}</td>
           <td>${item.unit}</td>
           <td>
             <strong>${item.english}</strong>
@@ -263,16 +293,18 @@
       });
     }
 
-    // Otsingu ja Uniti filtreerimine
     function filterWords() {
       const search = document.getElementById('search-input').value.toLowerCase();
+      const selectedBook = document.getElementById('book-filter').value;
       const selectedUnit = document.getElementById('unit-filter').value;
 
       filteredWords = allWords.filter(item => {
         const matchesSearch = item.english.toLowerCase().includes(search) || 
                               item.estonian.toLowerCase().includes(search);
+        const matchesBook = selectedBook === 'all' || (item.book || 'Book 1') === selectedBook;
         const matchesUnit = selectedUnit === 'all' || item.unit === selectedUnit;
-        return matchesSearch && matchesUnit;
+
+        return matchesSearch && matchesBook && matchesUnit;
       });
 
       if (isTableView) {
@@ -283,18 +315,14 @@
       }
     }
 
-    // Teksti hääldamine (Text-to-Speech)
     function speak(text) {
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
-      } else {
-        alert('Sinu brauser ei toeta teksti ette lugemist.');
       }
     }
 
-    // Vaate vahetamine (Tabel vs Mälukaardid)
     function toggleView() {
       isTableView = !isTableView;
       const tableView = document.getElementById('table-view');
@@ -315,7 +343,6 @@
       }
     }
 
-    // Mälukaartide loogika
     function showCard() {
       if (filteredWords.length === 0) {
         document.getElementById('card-word').textContent = 'Sõnu ei leitud';
@@ -331,11 +358,7 @@
 
     function flipCard() {
       const translation = document.getElementById('card-translation');
-      if (translation.style.display === 'none') {
-        translation.style.display = 'block';
-      } else {
-        translation.style.display = 'none';
-      }
+      translation.style.display = translation.style.display === 'none' ? 'block' : 'none';
     }
 
     function nextCard() {
