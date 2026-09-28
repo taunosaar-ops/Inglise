@@ -1,6 +1,80 @@
 [
-  { "book": "Book 1", "unit": "Unit 1", "english": "about", "estonian": "umbes; kohta" },
-  { "book": "Book 1", "unit": "Unit 1", "english": "accident", "estonian": "õnnetus" },
-  { "book": "Book 2", "unit": "Unit 1", "english": "ability", "estonian": "võime" },
-  { "book": "Book 4", "unit": "Unit 3", "english": "achievement", "estonian": "saavutus" }
+  { "book": "Book 4", "unit": "Unit 1", "en": "wonder", "et": "teada tahtma" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "I wonder...", "et": "Oleks huvitav teada..." },
+  { "book": "Book 4", "unit": "Unit 1", "en": "juggle", "et": "žongleerima" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "bracelet", "et": "käevõru" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "loom bands", "et": "heegelkummid" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "drop tower", "et": "vabalangemistorn" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "the worst", "et": "kõige halvem" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "witch", "et": "nõid" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "pointed", "et": "teravatipuline" },
+  { "book": "Book 4", "unit": "Unit 1", "en": "broomstick", "et": "luud" },
+
+  { "book": "Book 4", "unit": "Unit 2", "en": "history", "et": "ajalugu" },
+  { "book": "Book 4", "unit": "Unit 2", "en": "century", "et": "sajand" },
+  { "book": "Book 4", "unit": "Unit 2", "en": "ancient", "et": "iidne, vana" },
+  { "book": "Book 4", "unit": "Unit 2", "en": "invade", "et": "sisse tungima" },
+  { "book": "Book 4", "unit": "Unit 2", "en": "soldier", "et": "sõdur" },
+  { "book": "Book 4", "unit": "Unit 2", "en": "empire", "et": "impeerium, keisririik" },
+
+  { "book": "Book 4", "unit": "Unit 3", "en": "department store", "et": "kaubamaja" },
+  { "book": "Book 4", "unit": "Unit 3", "en": "escalator", "et": "eskalaator" },
+  { "book": "Book 4", "unit": "Unit 3", "en": "cashier", "et": "kassiir, kassapidaja" },
+  { "book": "Book 4", "unit": "Unit 3", "en": "receipt", "et": "tšekk, kviitung" },
+  { "book": "Book 4", "unit": "Unit 3", "en": "fitting room", "et": "proovikabiin" },
+
+  { "book": "Book 4", "unit": "Unit 4", "en": "chore", "et": "kodune töö / kohustus" },
+  { "book": "Book 4", "unit": "Unit 4", "en": "vacuum", "et": "tolmuimejaga imema" },
+  { "book": "Book 4", "unit": "Unit 4", "en": "ironing", "et": "triikimine" },
+  { "book": "Book 4", "unit": "Unit 4", "en": "mow the lawn", "et": "muru niitma" },
+  { "book": "Book 4", "unit": "Unit 4", "en": "empty the dishwasher", "et": "nõudepesumasinat tühjendama" },
+
+  { "book": "Book 4", "unit": "Unit 5", "en": "trick or treat", "et": "trikki või meelehead" },
+  { "book": "Book 4", "unit": "Unit 5", "en": "pumpkin", "et": "kõrvits" },
+  { "book": "Book 4", "unit": "Unit 5", "en": "skeleton", "et": "luukere, skelett" },
+  { "book": "Book 4", "unit": "Unit 5", "en": "ghost", "et": "kummitus" },
+  { "book": "Book 4", "unit": "Unit 5", "en": "frightening", "et": "hirmutav" },
+
+  { "book": "Book 4", "unit": "Unit 6", "en": "media", "et": "meedia" },
+  { "book": "Book 4", "unit": "Unit 6", "en": "newspaper", "et": "ajaleht" },
+  { "book": "Book 4", "unit": "Unit 6", "en": "headline", "et": "pealkiri" },
+  { "book": "Book 4", "unit": "Unit 6", "en": "broadcast", "et": "ülekanne, saade" },
+  { "book": "Book 4", "unit": "Unit 6", "en": "interview", "et": "intervjuu" },
+
+  { "book": "Book 4", "unit": "Unit 7", "en": "Scotland", "et": "Šotimaa" },
+  { "book": "Book 4", "unit": "Unit 7", "en": "kilt", "et": "šoti seelik (kilt)" },
+  { "book": "Book 4", "unit": "Unit 7", "en": "bagpipes", "et": "torupill" },
+  { "book": "Book 4", "unit": "Unit 7", "en": "loch", "et": "järv (Šotimaal)" },
+  { "book": "Book 4", "unit": "Unit 7", "en": "castle", "et": "loss, kindlus" },
+
+  { "book": "Book 4", "unit": "Unit 8", "en": "mystery", "et": "müsteerium, saladus" },
+  { "book": "Book 4", "unit": "Unit 8", "en": "detective", "et": "detektiiv" },
+  { "book": "Book 4", "unit": "Unit 8", "en": "clue", "et": "juhtlõng, vihje" },
+  { "book": "Book 4", "unit": "Unit 8", "en": "solve", "et": "lahendama" },
+  { "book": "Book 4", "unit": "Unit 8", "en": "disappear", "et": "kaduma" },
+
+  { "book": "Book 4", "unit": "Unit 9", "en": "chocolate", "et": "šokolaad" },
+  { "book": "Book 4", "unit": "Unit 9", "en": "cocoa bean", "et": "kakaouba" },
+  { "book": "Book 4", "unit": "Unit 9", "en": "factory", "et": "tehas, vabrik" },
+  { "book": "Book 4", "unit": "Unit 9", "en": "delicious", "et": "ülimaitsv" },
+
+  { "book": "Book 4", "unit": "Unit 10", "en": "Christmas", "et": "jõulud" },
+  { "book": "Book 4", "unit": "Unit 10", "en": "carol", "et": "jõululaul" },
+  { "book": "Book 4", "unit": "Unit 10", "en": "reindeer", "et": "põhjapõder" },
+  { "book": "Book 4", "unit": "Unit 10", "en": "ornament", "et": "ehe, kaunistus" },
+
+  { "book": "Book 4", "unit": "Unit 11", "en": "Red Nose Day", "et": "Punase Nina Päev" },
+  { "book": "Book 4", "unit": "Unit 11", "en": "charity", "et": "heategevus" },
+  { "book": "Book 4", "unit": "Unit 11", "en": "donate", "et": "annetama" },
+  { "book": "Book 4", "unit": "Unit 11", "en": "raise money", "et": "raha koguma" },
+
+  { "book": "Book 4", "unit": "Unit 12", "en": "health", "et": "tervis" },
+  { "book": "Book 4", "unit": "Unit 12", "en": "well-being", "et": "heaolu" },
+  { "book": "Book 4", "unit": "Unit 12", "en": "exercise", "et": "treening, harjutus" },
+  { "book": "Book 4", "unit": "Unit 12", "en": "nutrition", "et": "toitumine" },
+
+  { "book": "Book 4", "unit": "Unit 20", "en": "seaside", "et": "mererand" },
+  { "book": "Book 4", "unit": "Unit 20", "en": "coast", "et": "rannik" },
+  { "book": "Book 4", "unit": "Unit 20", "en": "sunscreen", "et": "päikesekaitsekreem" },
+  { "book": "Book 4", "unit": "Unit 20", "en": "towel", "et": "rätik" }
 ]
