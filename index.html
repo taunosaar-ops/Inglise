@@ -1,1 +1,82 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inglise keele sõnad</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      max-width: 800px;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Inglise-Eesti sõnavara</h1>
+
+  <table id="vocabulary-table">
+    <thead>
+      <tr>
+        <th>Osa</th>
+        <th>Inglise keel</th>
+        <th>Eesti keel</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Sõnad laetakse siia automaatselt JSON failist -->
+    </tbody>
+  </table>
+
+  <script>
+    async function loadWords() {
+      try {
+        const response = await fetch('words.json');
+        const words = await response.json();
+        
+        const tbody = document.querySelector('#vocabulary-table tbody');
+        tbody.innerHTML = '';
+
+        words.forEach(word => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${word.unit}</td>
+            <td><strong>${word.english}</strong></td>
+            <td>${word.estonian}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Viga sõnade laadimisel:', error);
+      }
+    }
+
+    loadWords();
+  </script>
+
+</body>
+</html>
 
