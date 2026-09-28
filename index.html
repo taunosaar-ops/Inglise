@@ -98,7 +98,7 @@
         var mode = '';
         var currentAudioWord = '';
 
-        // Laeme words.json faili otse
+        // Laeme words.json faili
         fetch('words.json')
             .then(function(response) {
                 if (!response.ok) throw new Error("Faili words.json ei leitud!");
@@ -111,7 +111,7 @@
                 initBooks();
             })
             .catch(function(err) {
-                document.getElementById('status-msg').textContent = '⚠️ Viga andmete laadimisel! Veendu, et words.json on samas kaustas.';
+                document.getElementById('status-msg').textContent = '⚠️ Viga andmete laadimisel! Veendu, et words.json fail on olemas ja korrektses formaadis.';
                 console.error(err);
             });
 
@@ -136,7 +136,9 @@
                 for (var u in DATA[b]) {
                     var opt = document.createElement('option');
                     opt.value = u;
-                    opt.textContent = DATA[b][u].name || ('Unit ' + u);
+                    var unitObj = DATA[b][u];
+                    // Kui nimi on olemas (nt "Unit 8: Clowns"), kasutame seda direct; muidu lisame sõna "Unit "
+                    opt.textContent = (unitObj && unitObj.name) ? unitObj.name : ('Unit ' + u);
                     uSelect.appendChild(opt);
                 }
             }
@@ -167,14 +169,24 @@
 
         function getSelectedDict(b, u) {
             var dict = {};
+            if (!DATA[b]) return dict;
+
             if (u === 'all') {
                 for (var unitKey in DATA[b]) {
-                    if (DATA[b][unitKey] && DATA[b][unitKey].words) {
-                        Object.assign(dict, DATA[b][unitKey].words);
+                    var uData = DATA[b][unitKey];
+                    if (uData) {
+                        var w = uData.words || uData;
+                        for (var k in w) {
+                            if (k !== 'name') dict[k] = w[k];
+                        }
                     }
                 }
-            } else if (DATA[b] && DATA[b][u]) {
-                dict = DATA[b][u].words || {};
+            } else if (DATA[b][u]) {
+                var uData = DATA[b][u];
+                var w = uData.words || uData;
+                for (var k in w) {
+                    if (k !== 'name') dict[k] = w[k];
+                }
             }
             return dict;
         }
