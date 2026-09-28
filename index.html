@@ -46,14 +46,14 @@
 
             <label><strong>Sõnade vahemik:</strong> <span id="total-words-info" style="color: #666; font-size: 14px;"></span></label>
             <select id="range-type" onchange="toggleCustomRange()">
-                <option value="custom">Ise valitud vahemik</option>
+                <option value="custom">Ise valitud vahemik (nt 1-15)</option>
                 <option value="all">Kõik uniti sõnad</option>
             </select>
 
             <div id="custom-range-box" class="range-container">
                 <input type="number" id="range-start" value="1" min="1" placeholder="Algus (nt 1)">
                 <span>kuni</span>
-                <input type="number" id="range-end" value="10" min="1" placeholder="Lõpp (nt 10)">
+                <input type="number" id="range-end" value="15" min="1" placeholder="Lõpp (nt 15)">
             </div>
 
             <label><strong>Režiim:</strong></label>
@@ -94,6 +94,7 @@
         <table class="print-table">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>Sõna / Väljend</th>
                     <th>Tõlge</th>
                 </tr>
@@ -110,7 +111,6 @@
         var mode = '';
         var currentAudioWord = '';
 
-        // Laeme words.json faili
         fetch('words.json')
             .then(function(response) {
                 if (!response.ok) throw new Error("Faili words.json ei leitud!");
@@ -123,7 +123,7 @@
                 initBooks();
             })
             .catch(function(err) {
-                document.getElementById('status-msg').textContent = '⚠️ Viga andmete laadimisel! Veendu, et words.json on samas kaustas.';
+                document.getElementById('status-msg').textContent = '⚠️ Viga andmete laadimisel!';
                 console.error(err);
             });
 
@@ -149,13 +149,8 @@
                     var opt = document.createElement('option');
                     opt.value = u;
                     var unitObj = DATA[b][u];
-                    
-                    // Puhastame nime: ei lisa automaatselt sõna "Unit", kasuta otse nime või võtit
                     var displayName = (unitObj && unitObj.name) ? unitObj.name : u;
-                    
-                    // Eemaldame igaks juhuks dubleeritud "Unit Unit" juhul kui see pärineb nimekujust
                     displayName = displayName.replace(/^Unit\s+Unit/i, 'Unit');
-
                     opt.textContent = displayName;
                     uSelect.appendChild(opt);
                 }
@@ -167,10 +162,10 @@
             var b = document.getElementById('book-select').value;
             var u = document.getElementById('unit-select').value;
             var dict = getSelectedDict(b, u);
-            var total = Object.keys(dict).length;
+            var total = dict.length;
             
             document.getElementById('total-words-info').textContent = '(Kokku: ' + total + ' sõna)';
-            document.getElementById('range-end').value = Math.min(10, total);
+            document.getElementById('range-end').value = Math.min(15, total);
             document.getElementById('range-start').value = 1;
         }
 
@@ -184,41 +179,74 @@
             }
         }
 
-        function getSelectedDict(b, u) {
-            var dict = {};
-            if (!DATA[b]) return dict;
+        // Tuvastab objektist või massiivist ingliskeelse ja eestikeelse sõna
+        function extractWordPair(item, fallbackKey) {
+            var eng = '', est = '';
 
-            if (u === 'all') {
-                for (var unitKey in DATA[b]) {
-                    var uData = DATA[b][unitKey];
-                    if (uData) {
-                        var w = uData.words || uData;
-                        for (var k in w) {
-                            if (k !== 'name') dict[k] = w[k];
+            if (Array.isArray(item)) {
+                eng = item[0];
+                est = item[1];
+            } else if (typeof item === 'object' && item !== null) {
+                eng = item.en || item.eng || item.word || item.english || item[0];
+                est = item.et || item.est || item.translation || item.eesti || item[1];
+                
+                // Kui objektil puuduvad ülaltoodud võtmed, võtame esimesed kaks väärtust
+                if (!eng || !est) {
+                    var vals = Object.values(item);
+                    eng = eng || vals[0];
+                    est = est || vals[1];
+                }
+            } else if (typeof item === 'string') {
+                eng = fallbackKey && isNaN(fallbackKey) ? fallbackKey : item;
+                est = item;
+            }
+
+            return [String(eng || '').trim(), String(est || '').trim()];
+        }
+
+        function getSelectedDict(b, u) {
+            var list = [];
+            if (!DATA[b]) return list;
+
+            function processUnit(uData) {
+                if (!uData) return;
+                var source = uData.words || uData;
+
+                if (Array.isArray(source)) {
+                    source.forEach(function(item, idx) {
+                        list.push(extractWordPair(item, idx));
+                    });
+                } else if (typeof source === 'object') {
+                    for (var k in source) {
+                        if (k !== 'name' && k !== 'words') {
+                            list.push(extractWordPair(source[k], k));
                         }
                     }
                 }
-            } else if (DATA[b][u]) {
-                var uData = DATA[b][u];
-                var w = uData.words || uData;
-                for (var k in w) {
-                    if (k !== 'name') dict[k] = w[k];
-                }
             }
-            return dict;
+
+            if (u === 'all') {
+                for (var unitKey in DATA[b]) {
+                    processUnit(DATA[b][unitKey]);
+                }
+            } else if (DATA[b][u]) {
+                processUnit(DATA[b][u]);
+            }
+
+            return list;
         }
 
         function getEntriesForTest() {
             var b = document.getElementById('book-select').value;
             var u = document.getElementById('unit-select').value;
-            var dict = getSelectedDict(b, u);
-            var allEntries = Object.entries(dict);
+            var allEntries = getSelectedDict(b, u);
             var rangeType = document.getElementById('range-type').value;
 
             if (rangeType === 'custom') {
                 var start = parseInt(document.getElementById('range-start').value) || 1;
                 var end = parseInt(document.getElementById('range-end').value) || allEntries.length;
                 
+                // Võtame täpselt valitud numbrite vahemiku (1-põhine indeks)
                 start = Math.max(1, start) - 1;
                 end = Math.min(allEntries.length, end);
 
@@ -237,6 +265,7 @@
 
             if (!entries) return;
 
+            // Segame valitud vahemiku sõnad testi jaoks suvalisse järjekorda
             words = entries.sort(function() { return Math.random() - 0.5; });
 
             if (words.length === 0) {
@@ -287,14 +316,14 @@
             
             var b = document.getElementById('book-select').value;
             var u = document.getElementById('unit-select').value;
-            var fullDict = getSelectedDict(b, u);
-            var allAnswers = Object.entries(fullDict).map(function(w) { return isEE ? w[1] : w[0]; });
+            var fullList = getSelectedDict(b, u);
+            var allAnswers = fullList.map(function(w) { return isEE ? w[1] : w[0]; });
 
             var options = [correct];
             
             while (options.length < 4 && options.length < allAnswers.length) {
                 var rand = allAnswers[Math.floor(Math.random() * allAnswers.length)];
-                if (options.indexOf(rand) === -1) {
+                if (options.indexOf(rand) === -1 && rand) {
                     options.push(rand);
                 }
             }
@@ -371,9 +400,9 @@
 
             var tbody = document.getElementById('print-table-body');
             tbody.innerHTML = '';
-            entries.forEach(function(pair) {
+            entries.forEach(function(pair, i) {
                 var tr = document.createElement('tr');
-                tr.innerHTML = '<td><strong>' + pair[0] + '</strong></td><td>' + pair[1] + '</td>';
+                tr.innerHTML = '<td>' + (i + 1) + '</td><td><strong>' + pair[0] + '</strong></td><td>' + pair[1] + '</td>';
                 tbody.appendChild(tr);
             });
             window.print();
