@@ -5,72 +5,356 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inglise keele sõnad</title>
   <style>
+    :root {
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --bg: #f4f4f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f4f4f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg);
+      color: var(--text);
     }
+
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
     h1 {
-      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
     }
+
+    /* Juhtnupud ja filtrid */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: space-between;
+    }
+
+    .search-filter {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    input[type="text"], select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+    }
+
+    .btn-toggle {
+      padding: 10px 16px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .btn-toggle:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Tabeli stiilid */
     table {
       width: 100%;
-      max-width: 800px;
       border-collapse: collapse;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-radius: 8px;
+      overflow: hidden;
     }
+
     th, td {
-      padding: 10px 15px;
-      border: 1px solid #ddd;
+      padding: 12px 15px;
       text-align: left;
+      border-bottom: 1px solid #eee;
     }
+
     th {
-      background-color: #007bff;
+      background-color: var(--primary);
       color: white;
     }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .audio-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* Mälukaartide režiim */
+    #flashcard-view {
+      display: none;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 40px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 400px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card .word {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .card .translation {
+      font-size: 18px;
+      color: #666;
+      display: none;
+    }
+
+    .card-nav {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .card-nav button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #e0e0e0;
+      cursor: pointer;
+    }
+
+    .card-nav button:hover {
+      background-color: #d0d0d0;
     }
   </style>
 </head>
 <body>
 
-  <h1>Inglise-Eesti sõnavara</h1>
+  <div class="container">
+    <h1>Inglise-Eesti sõnavara</h1>
 
-  <table id="vocabulary-table">
-    <thead>
-      <tr>
-        <th>Osa</th>
-        <th>Inglise keel</th>
-        <th>Eesti keel</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Sõnad laetakse siia automaatselt JSON failist -->
-    </tbody>
-  </table>
+    <div class="controls">
+      <div class="search-filter">
+        <input type="text" id="search-input" placeholder="Otsi sõna..." oninput="filterWords()">
+        <select id="unit-filter" onchange="filterWords()">
+          <option value="all">Kõik osad</option>
+        </select>
+      </div>
+      <button class="btn-toggle" onclick="toggleView()" id="view-btn">Mälukaardid 🎴</button>
+    </div>
+
+    <!-- Tabeli vaade -->
+    <div id="table-view">
+      <table id="vocabulary-table">
+        <thead>
+          <tr>
+            <th>Osa</th>
+            <th>Inglise keel</th>
+            <th>Eesti keel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Sõnad laetakse siia automaatselt -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mälukaartide vaade -->
+    <div id="flashcard-view">
+      <div class="card" onclick="flipCard()">
+        <div class="word" id="card-word">Sõna</div>
+        <div class="translation" id="card-translation">Tõlge</div>
+      </div>
+      <div class="card-nav">
+        <button onclick="prevCard()">◀ Eelmine</button>
+        <button onclick="speakCurrentCard()">🔊 Kuula</button>
+        <button onclick="nextCard()">Järgmine ▶</button>
+      </div>
+    </div>
+  </div>
 
   <script>
+    let allWords = [];
+    let filteredWords = [];
+    let currentCardIndex = 0;
+    let isTableView = true;
+
+    // Lae sõnad JSON failist
     async function loadWords() {
       try {
         const response = await fetch('words.json');
-        const words = await response.json();
-        
-        const tbody = document.querySelector('#vocabulary-table tbody');
-        tbody.innerHTML = '';
+        allWords = await response.json();
+        filteredWords = [...allWords];
 
-        words.forEach(word => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${word.unit}</td>
-            <td><strong>${word.english}</strong></td>
-            <td>${word.estonian}</td>
-          `;
-          tbody.appendChild(row);
-        });
+        populateUnitFilter();
+        renderTable();
       } catch (error) {
         console.error('Viga sõnade laadimisel:', error);
+      }
+    }
+
+    // Täida Uniti filter automaatselt olemasolevate osadega
+    function populateUnitFilter() {
+      const unitSelect = document.getElementById('unit-filter');
+      const units = [...new Set(allWords.map(w => w.unit))];
+      
+      units.forEach(unit => {
+        const option = document.createElement('option');
+        option.value = unit;
+        option.textContent = unit;
+        unitSelect.appendChild(option);
+      });
+    }
+
+    // Kuva sõnad tabelis
+    function renderTable() {
+      const tbody = document.querySelector('#vocabulary-table tbody');
+      tbody.innerHTML = '';
+
+      filteredWords.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.unit}</td>
+          <td>
+            <strong>${item.english}</strong>
+            <button class="audio-btn" onclick="speak('${item.english.replace(/'/g, "\\'")}')">🔊</button>
+          </td>
+          <td>${item.estonian}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Otsingu ja Uniti filtreerimine
+    function filterWords() {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const selectedUnit = document.getElementById('unit-filter').value;
+
+      filteredWords = allWords.filter(item => {
+        const matchesSearch = item.english.toLowerCase().includes(search) || 
+                              item.estonian.toLowerCase().includes(search);
+        const matchesUnit = selectedUnit === 'all' || item.unit === selectedUnit;
+        return matchesSearch && matchesUnit;
+      });
+
+      if (isTableView) {
+        renderTable();
+      } else {
+        currentCardIndex = 0;
+        showCard();
+      }
+    }
+
+    // Teksti hääldamine (Text-to-Speech)
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert('Sinu brauser ei toeta teksti ette lugemist.');
+      }
+    }
+
+    // Vaate vahetamine (Tabel vs Mälukaardid)
+    function toggleView() {
+      isTableView = !isTableView;
+      const tableView = document.getElementById('table-view');
+      const cardView = document.getElementById('flashcard-view');
+      const btn = document.getElementById('view-btn');
+
+      if (isTableView) {
+        tableView.style.display = 'block';
+        cardView.style.display = 'none';
+        btn.textContent = 'Mälukaardid 🎴';
+        renderTable();
+      } else {
+        tableView.style.display = 'none';
+        cardView.style.display = 'block';
+        btn.textContent = 'Tabeli vaade 📋';
+        currentCardIndex = 0;
+        showCard();
+      }
+    }
+
+    // Mälukaartide loogika
+    function showCard() {
+      if (filteredWords.length === 0) {
+        document.getElementById('card-word').textContent = 'Sõnu ei leitud';
+        document.getElementById('card-translation').style.display = 'none';
+        return;
+      }
+      const card = filteredWords[currentCardIndex];
+      document.getElementById('card-word').textContent = card.english;
+      const translation = document.getElementById('card-translation');
+      translation.textContent = card.estonian;
+      translation.style.display = 'none';
+    }
+
+    function flipCard() {
+      const translation = document.getElementById('card-translation');
+      if (translation.style.display === 'none') {
+        translation.style.display = 'block';
+      } else {
+        translation.style.display = 'none';
+      }
+    }
+
+    function nextCard() {
+      if (filteredWords.length > 0) {
+        currentCardIndex = (currentCardIndex + 1) % filteredWords.length;
+        showCard();
+      }
+    }
+
+    function prevCard() {
+      if (filteredWords.length > 0) {
+        currentCardIndex = (currentCardIndex - 1 + filteredWords.length) % filteredWords.length;
+        showCard();
+      }
+    }
+
+    function speakCurrentCard() {
+      if (filteredWords.length > 0) {
+        speak(filteredWords[currentCardIndex].english);
       }
     }
 
@@ -79,4 +363,3 @@
 
 </body>
 </html>
-
