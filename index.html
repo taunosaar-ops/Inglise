@@ -19,6 +19,9 @@
         .audio-btn { background: none; border: none; cursor: pointer; font-size: 24px; width: auto; display: inline; color: #3498db; padding: 0 8px; }
         #status-msg { color: #d35400; font-weight: bold; text-align: center; margin-bottom: 10px; }
         
+        .range-container { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+        .range-container input { width: 50%; text-align: center; margin: 0; }
+        
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -39,17 +42,26 @@
             <select id="book-select" onchange="updateUnits()"></select>
 
             <label><strong>Vali osa (Unit):</strong></label>
-            <select id="unit-select" onchange="updateRanges()"></select>
+            <select id="unit-select" onchange="updateTotalInfo()"></select>
 
-            <label><strong>Vali sõnade vahemik:</strong></label>
-            <select id="range-select"></select>
+            <label><strong>Sõnade vahemik:</strong> <span id="total-words-info" style="color: #666; font-size: 14px;"></span></label>
+            <select id="range-type" onchange="toggleCustomRange()">
+                <option value="custom">Ise valitud vahemik</option>
+                <option value="all">Kõik uniti sõnad</option>
+            </select>
+
+            <div id="custom-range-box" class="range-container">
+                <input type="number" id="range-start" value="1" min="1" placeholder="Algus (nt 1)">
+                <span>kuni</span>
+                <input type="number" id="range-end" value="10" min="1" placeholder="Lõpp (nt 10)">
+            </div>
 
             <label><strong>Režiim:</strong></label>
             <select id="mode-select">
-                <option value="write-ee">Kirjuta eesti keeles (ENG -> EST)</option>
-                <option value="write-en">Kirjuta inglise keeles (EST -> ENG)</option>
-                <option value="choice-ee">Valikvastused (ENG -> EST)</option>
-                <option value="choice-en">Valikvastused (EST -> ENG)</option>
+                <option value="choice-ee">Valikvastused - 4 varianti (ENG -> EST)</option>
+                <option value="choice-en">Valikvastused - 4 varianti (EST -> ENG)</option>
+                <option value="write-ee">Kirjutamine (ENG -> EST)</option>
+                <option value="write-en">Kirjutamine (EST -> ENG)</option>
             </select>
 
             <button onclick="startTest()">Alusta testi</button>
@@ -111,7 +123,7 @@
                 initBooks();
             })
             .catch(function(err) {
-                document.getElementById('status-msg').textContent = '⚠️ Viga andmete laadimisel! Veendu, et words.json fail on olemas ja korrektses formaadis.';
+                document.getElementById('status-msg').textContent = '⚠️ Viga andmete laadimisel! Veendu, et words.json on samas kaustas.';
                 console.error(err);
             });
 
@@ -137,33 +149,38 @@
                     var opt = document.createElement('option');
                     opt.value = u;
                     var unitObj = DATA[b][u];
-                    // Kui nimi on olemas (nt "Unit 8: Clowns"), kasutame seda direct; muidu lisame sõna "Unit "
-                    opt.textContent = (unitObj && unitObj.name) ? unitObj.name : ('Unit ' + u);
+                    
+                    // Puhastame nime: ei lisa automaatselt sõna "Unit", kasuta otse nime või võtit
+                    var displayName = (unitObj && unitObj.name) ? unitObj.name : u;
+                    
+                    // Eemaldame igaks juhuks dubleeritud "Unit Unit" juhul kui see pärineb nimekujust
+                    displayName = displayName.replace(/^Unit\s+Unit/i, 'Unit');
+
+                    opt.textContent = displayName;
                     uSelect.appendChild(opt);
                 }
             }
-            updateRanges();
+            updateTotalInfo();
         }
 
-        function updateRanges() {
+        function updateTotalInfo() {
             var b = document.getElementById('book-select').value;
             var u = document.getElementById('unit-select').value;
-            var rSelect = document.getElementById('range-select');
-            rSelect.innerHTML = '<option value="all">Kõik sõnad</option>';
-
             var dict = getSelectedDict(b, u);
             var total = Object.keys(dict).length;
-            var step = 10;
+            
+            document.getElementById('total-words-info').textContent = '(Kokku: ' + total + ' sõna)';
+            document.getElementById('range-end').value = Math.min(10, total);
+            document.getElementById('range-start').value = 1;
+        }
 
-            if (total > step) {
-                for (var i = 0; i < total; i += step) {
-                    var startWord = i + 1;
-                    var endWord = Math.min(i + step, total);
-                    var opt = document.createElement('option');
-                    opt.value = i + '-' + endWord;
-                    opt.textContent = 'Sõnad ' + startWord + '–' + endWord + ' (kokku ' + (endWord - startWord + 1) + ')';
-                    rSelect.appendChild(opt);
-                }
+        function toggleCustomRange() {
+            var type = document.getElementById('range-type').value;
+            var box = document.getElementById('custom-range-box');
+            if (type === 'custom') {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
             }
         }
 
@@ -191,23 +208,36 @@
             return dict;
         }
 
-        function startTest() {
+        function getEntriesForTest() {
             var b = document.getElementById('book-select').value;
             var u = document.getElementById('unit-select').value;
-            var r = document.getElementById('range-select').value;
-            mode = document.getElementById('mode-select').value;
-            
             var dict = getSelectedDict(b, u);
             var allEntries = Object.entries(dict);
+            var rangeType = document.getElementById('range-type').value;
 
-            if (r !== 'all') {
-                var parts = r.split('-');
-                var startIdx = parseInt(parts[0]);
-                var endIdx = parseInt(parts[1]);
-                allEntries = allEntries.slice(startIdx, endIdx);
+            if (rangeType === 'custom') {
+                var start = parseInt(document.getElementById('range-start').value) || 1;
+                var end = parseInt(document.getElementById('range-end').value) || allEntries.length;
+                
+                start = Math.max(1, start) - 1;
+                end = Math.min(allEntries.length, end);
+
+                if (start >= end) {
+                    alert("Algusnäitaja peab olema väiksem kui lõppnäitaja!");
+                    return null;
+                }
+                return allEntries.slice(start, end);
             }
+            return allEntries;
+        }
 
-            words = allEntries.sort(function() { return Math.random() - 0.5; });
+        function startTest() {
+            mode = document.getElementById('mode-select').value;
+            var entries = getEntriesForTest();
+
+            if (!entries) return;
+
+            words = entries.sort(function() { return Math.random() - 0.5; });
 
             if (words.length === 0) {
                 alert("Valitud osas või vahemikus puuduvad sõnad!");
@@ -254,13 +284,21 @@
         function makeChoices(correct, isEE) {
             var box = document.getElementById('choice-box');
             box.innerHTML = '';
-            var allAnswers = words.map(function(w) { return isEE ? w[1] : w[0]; });
+            
+            var b = document.getElementById('book-select').value;
+            var u = document.getElementById('unit-select').value;
+            var fullDict = getSelectedDict(b, u);
+            var allAnswers = Object.entries(fullDict).map(function(w) { return isEE ? w[1] : w[0]; });
+
             var options = [correct];
             
             while (options.length < 4 && options.length < allAnswers.length) {
                 var rand = allAnswers[Math.floor(Math.random() * allAnswers.length)];
-                if (options.indexOf(rand) === -1) options.push(rand);
+                if (options.indexOf(rand) === -1) {
+                    options.push(rand);
+                }
             }
+            
             options.sort(function() { return Math.random() - 0.5; });
 
             options.forEach(function(opt) {
@@ -328,19 +366,8 @@
         }
 
         function openPrintView() {
-            var b = document.getElementById('book-select').value;
-            var u = document.getElementById('unit-select').value;
-            var r = document.getElementById('range-select').value;
-            
-            var dict = getSelectedDict(b, u);
-            var entries = Object.entries(dict);
-
-            if (r !== 'all') {
-                var parts = r.split('-');
-                var startIdx = parseInt(parts[0]);
-                var endIdx = parseInt(parts[1]);
-                entries = entries.slice(startIdx, endIdx);
-            }
+            var entries = getEntriesForTest();
+            if (!entries) return;
 
             var tbody = document.getElementById('print-table-body');
             tbody.innerHTML = '';
