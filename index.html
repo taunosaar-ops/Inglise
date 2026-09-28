@@ -1,237 +1,170 @@
-<!DOCTYPE html>
-<html lang="et">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sõnavara Testija</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
-        h1 { margin-top: 0; color: #2c3e50; font-size: 24px; }
-        .control-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; font-size: 14px; }
-        select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; outline: none; transition: 0.2s; }
-        select:focus, input:focus { border-color: #3498db; }
-        .range-inputs { display: flex; gap: 10px; }
-        button { width: 100%; background-color: #2ecc71; color: white; border: none; padding: 12px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button:hover { background-color: #27ae60; }
+        /* Põhiline lehe stiil ja taust */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            background: #ffffff;
+            line-height: 1.6;
+        }
+
+        /* Pealkirjad */
+        h1 { 
+            text-align: center; 
+            color: #2c3e50; 
+            font-size: 32px; 
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+        }
+        h2 {
+            color: #2c3e50;
+        }
+
+        /* Sektsioonide vahed */
+        .menu, .game { margin-top: 20px; }
+        
+        p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        /* Nupud */
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        button:hover { background-color: #2980b9; }
+        
+        .secondary-btn { background-color: #95a5a6; }
+        .secondary-btn:hover { background-color: #7f8c8d; }
+
+        /* Valikmenüüd (select) */
+        select {
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            font-size: 18px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            background-color: #fdfdfd;
+        }
+
+        /* Tekstisisestusväli */
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            box-sizing: border-box;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 20px;
+            transition: border-color 0.2s ease;
+        }
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        /* 4-variandiga valikute ruudustik */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .option-btn {
+            background-color: #2ecc71;
+            font-size: 18px;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .option-btn:hover { background-color: #27ae60; }
+
+        /* Utiliit-klassid */
         .hidden { display: none; }
-        .word-box { background: #ebf5fb; border-left: 5px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; font-size: 24px; font-weight: bold; color: #2c3e50; }
-        .feedback { margin-top: 15px; font-weight: bold; font-size: 18px; min-height: 27px; }
-        .correct { color: #2ecc71; }
-        .incorrect { color: #e74c3c; }
-        .score { font-size: 14px; color: #7f8c8d; margin-top: 10px; }
+        
+        /* Statistika ja tagasiside mängu ajal */
+        #stats { 
+            font-size: 18px;
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            color: #7f8c8d;
+            text-align: center;
+        }
+        #feedback { 
+            font-weight: bold; 
+            margin-top: 15px; 
+            font-size: 22px; 
+            min-height: 30px; 
+            text-align: center;
+        }
+
+        /* Häälduse nupp */
+        .audio-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 0 10px;
+            width: auto;
+            display: inline;
+            color: #3498db;
+        }
+        .audio-btn:hover {
+            background: none;
+            transform: scale(1.1);
+        }
+
+        /* Küsimuse tekst */
+        #question-text {
+            font-size: 24px !important;
+            color: #2c3e50;
+        }
+
+        /* Printimise stiilid */
+        @media print {
+            body { 
+                background: #fff; 
+                box-shadow: none; 
+                margin: 0; 
+                padding: 0;
+                max-width: 100%; 
+            }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+        
+        .print-only { display: none; }
+        
+        table.print-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            font-size: 16px;
+        }
+        table.print-table th, table.print-table td { 
+            border: 1px solid #333; 
+            padding: 10px; 
+            line-height: 1.5; 
+            text-align: left; 
+            vertical-align: middle; 
+        }
+        .write-cell {
+            width: 50%;
+        }
     </style>
-</head>
-<body>
-
-<div class="card" id="setup-card">
-    <h1>Sõnavara Test</h1>
-    
-    <div class="control-group">
-        <label for="book-select">Vali raamat:</label>
-        <select id="book-select" onchange="updateUnits()">
-            <option value="Book 1">Book 1</option>
-        </select>
-    </div>
-
-    <div class="control-group">
-        <label for="unit-select">Vali Unit:</label>
-        <select id="unit-select" onchange="updateMaxWords()">
-            <!-- Täidetakse automaatselt JS-is -->
-        </select>
-    </div>
-
-    <div class="control-group">
-        <label>Sõnade vahemik (Unitis kokku: <span id="max-words-count">0</span> sõna):</label>
-        <div class="range-inputs">
-            <input type="number" id="start-word" value="1" min="1">
-            <input type="number" id="end-word" value="10" min="1">
-        </div>
-    </div>
-
-    <button onclick="startTest()">Alusta testi</button>
-</div>
-
-<div class="card hidden" id="test-card">
-    <div style="text-align: right;"><button onclick="resetTest()" style="width: auto; padding: 5px 10px; font-size: 12px; background: #95a5a6;">Katkesta</button></div>
-    <div class="score">Progress: <span id="current-index">0</span> / <span id="total-test-words">0</span></div>
-    
-    <div class="word-box" id="prompt-word">Sõna</div>
-
-    <div class="control-group">
-        <input type="text" id="answer-input" placeholder="Kirjuta tõlge eesti keeles..." autocomplete="off">
-    </div>
-
-    <button id="submit-btn" onclick="checkAnswer()">Kinnita</button>
-    <div class="feedback" id="feedback"></div>
-</div>
-
-<script>
-// Sõnade andmebaas (PDF-i põhjal)
-const vocabularyData = {
-    "Book 1": {
-        "Unit 1: Hello": [
-            { en: "unit", et: "õppetükk" },
-            { en: "Hello", et: "Tere!" },
-            { en: "Hi", et: "Tere!" },
-            { en: "I", et: "mina, ma" },
-            { en: "am", et: "olen" },
-            { en: "I am", et: "ma olen" },
-            { en: "I'm from", et: "Ma olen pärit" },
-            { en: "Britain", et: "Britannia" },
-            { en: "America", et: "Ameerika" },
-            { en: "Finland", et: "Soome" },
-            { en: "Estonia", et: "Eesti" },
-            { en: "and", et: "ja, ning" },
-            { en: "you", et: "sina, teie" },
-            { en: "he", et: "tema" },
-            { en: "she", et: "tema" },
-            { en: "this", et: "see" },
-            { en: "is", et: "on" },
-            { en: "He's / She's from", et: "Ta on pärit" },
-            { en: "good", et: "hea" },
-            { en: "morning", et: "hommik" },
-            { en: "Good morning!", et: "Tere hommikust!" },
-            { en: "Miss", et: "preili" },
-            { en: "what", et: "mis" },
-            { en: "what's", et: "mis on" },
-            { en: "your", et: "sinu; teie" },
-            { en: "name", et: "nimi" },
-            { en: "Sorry.", et: "Vabandust." },
-            { en: "late", et: "hilja" },
-            { en: "Sorry, I'm late.", et: "Vabandust, et ma hilinesin." },
-            { en: "that", et: "see" },
-            { en: "that's", et: "see on" },
-            { en: "OK", et: "okei, korras, hästi" },
-            { en: "That's OK.", et: "Sellest pole midagi." },
-            { en: "Goodbye!", et: "Head päeva! Head aega!" },
-            { en: "Bye-bye!", et: "Head päeva! Head aega!" }
-        ],
-        "Unit 2: Family": [
-            { en: "family", et: "perekond" },
-            { en: "dad", et: "isa" },
-            { en: "my", et: "minu" },
-            { en: "friend", et: "sõber" },
-            { en: "Mr", et: "härra" },
-            { en: "dog", et: "koer" },
-            { en: "mum", et: "ema" },
-            { en: "granny", et: "vanaema" },
-            { en: "grandad", et: "vanaisa" },
-            { en: "brother", et: "vend" }
-        ]
-    }
-};
-
-let activeWords = [];
-let currentIndex = 0;
-let correctAnswers = 0;
-
-function init() {
-    updateUnits();
-}
-
-function updateUnits() {
-    const book = document.getElementById("book-select").value;
-    const unitSelect = document.getElementById("unit-select");
-    unitSelect.innerHTML = "";
-    
-    for (let unit in vocabularyData[book]) {
-        let option = document.createElement("option");
-        option.value = unit;
-        option.textContent = unit;
-        unitSelect.appendChild(option);
-    }
-    updateMaxWords();
-}
-
-function updateMaxWords() {
-    const book = document.getElementById("book-select").value;
-    const unit = document.getElementById("unit-select").value;
-    if (!unit) return;
-    
-    const count = vocabularyData[book][unit].length;
-    document.getElementById("max-words-count").textContent = count;
-    document.getElementById("end-word").value = Math.min(10, count);
-}
-
-function startTest() {
-    const book = document.getElementById("book-select").value;
-    const unit = document.getElementById("unit-select").value;
-    const start = parseInt(document.getElementById("start-word").value) - 1;
-    const end = parseInt(document.getElementById("end-word").value);
-
-    const fullList = vocabularyData[book][unit];
-    activeWords = fullList.slice(start, end);
-
-    if (activeWords.length === 0) {
-        alert("Valitud vahemikus ei ole sõnu!");
-        return;
-    }
-
-    currentIndex = 0;
-    correctAnswers = 0;
-
-    document.getElementById("setup-card").classList.add("hidden");
-    document.getElementById("test-card").classList.remove("hidden");
-    document.getElementById("total-test-words").textContent = activeWords.length;
-
-    showWord();
-}
-
-function showWord() {
-    if (currentIndex >= activeWords.length) {
-        alert(`Test läbi! Tulemus: ${correctAnswers} / ${activeWords.length}`);
-        resetTest();
-        return;
-    }
-
-    document.getElementById("current-index").textContent = currentIndex + 1;
-    document.getElementById("prompt-word").textContent = activeWords[currentIndex].en;
-    document.getElementById("answer-input").value = "";
-    document.getElementById("feedback").textContent = "";
-    document.getElementById("answer-input").focus();
-}
-
-function checkAnswer() {
-    const input = document.getElementById("answer-input").value.trim().toLowerCase();
-    const correct = activeWords[currentIndex].et.toLowerCase();
-    const feedback = document.getElementById("feedback");
-
-    // Lihtsustatud kontroll (kontrollib kas vastus sisaldub õigetes variantides)
-    if (input !== "" && correct.includes(input)) {
-        feedback.textContent = "Õige!";
-        feedback.className = "feedback correct";
-        correctAnswers++;
-        setTimeout(() => {
-            currentIndex++;
-            showWord();
-        }, 1000);
-    } else {
-        feedback.textContent = `Vale! Õige vaste: ${activeWords[currentIndex].et}`;
-        feedback.className = "feedback incorrect";
-        setTimeout(() => {
-            currentIndex++;
-            showWord();
-        }, 2500);
-    }
-}
-
-// Enter klahviga vastamine
-document.getElementById("answer-input").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        checkAnswer();
-    }
-});
-
-function resetTest() {
-    document.getElementById("test-card").classList.add("hidden");
-    document.getElementById("setup-card").classList.remove("hidden");
-}
-
-window.onload = init;
-</script>
-
-</body>
-</html>
