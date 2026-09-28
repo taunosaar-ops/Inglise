@@ -1,10 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="et">
 <head>
     <meta charset="UTF-8">
-    <title>Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sõnade Testija</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; max-width: 600px; margin: 20px auto; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-top: 0; }
+        select, input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; box-sizing: border-box; }
+        button { background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .hidden { display: none; }
+        #feedback { text-align: center; font-weight: bold; font-size: 18px; margin-top: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    </style>
 </head>
 <body>
-    <h1>LEHT TÖÖTAB!</h1>
+    <div class="card">
+        <h1>Sõnade Testija</h1>
+
+        <div id="menu">
+            <label><strong>Vali raamat:</strong></label>
+            <select id="book-select" onchange="updateUnits()">
+                <option value="book1">Inglise keel 1</option>
+                <option value="book2">Inglise keel 2</option>
+            </select>
+
+            <label><strong>Vali osa:</strong></label>
+            <select id="unit-select"></select>
+
+            <label><strong>Režiim:</strong></label>
+            <select id="mode-select">
+                <option value="write-ee">Kirjuta eesti keeles (ENG -> EST)</option>
+                <option value="write-en">Kirjuta inglise keeles (EST -> ENG)</option>
+                <option value="choice-ee">Valikvastused (ENG -> EST)</option>
+            </select>
+
+            <button onclick="startTest()">Alusta testi</button>
+        </div>
+
+        <div id="game" class="hidden">
+            <div id="progress" style="text-align: center; color: #666;"></div>
+            <h2 id="question" style="text-align: center;"></h2>
+
+            <div id="write-box">
+                <input type="text" id="answer-input" placeholder="Kirjuta vastus..." autocomplete="off">
+                <button onclick="checkAnswer()">Kinnita</button>
+            </div>
+
+            <div id="choice-box" class="grid hidden"></div>
+
+            <div id="feedback"></div>
+            <button id="next-btn" class="hidden" onclick="nextQuestion()">Järgmine</button>
+            <button onclick="showMenu()" style="background: #95a5a6; margin-top: 15px;">Tagasi menüüsse</button>
+        </div>
+    </div>
+
+    <script>
+        var DATA = {
+            book1: {
+                1: { name: "Unit 1", words: { "apple": "õun", "banana": "banaan", "cat": "kass", "dog": "koer" } },
+                2: { name: "Unit 2", words: { "red": "punane", "blue": "sinine", "green": "roheline" } }
+            },
+            book2: {
+                1: { name: "Unit 1", words: { "house": "maja", "car": "auto", "tree": "puu" } }
+            }
+        };
+
+        var words = [];
+        var index = 0;
+        var score = 0;
+        var mode = '';
+
+        function updateUnits() {
+            var b = document.getElementById('book-select').value;
+            var uSelect = document.getElementById('unit-select');
+            uSelect.innerHTML = '';
+            for (var u in DATA[b]) {
+                var opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = DATA[b][u].name;
+                uSelect.appendChild(opt);
+            }
+        }
+
+        function startTest() {
+            var b = document.getElementById('book-select').value;
+            var u = document.getElementById('unit-select').value;
+            mode = document.getElementById('mode-select').value;
+            
+            var dict = DATA[b][u].words;
+            words = Object.entries(dict).sort(function() { return Math.random() - 0.5; });
+            index = 0;
+            score = 0;
+
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('answer-input').value = '';
+            document.getElementById('answer-input').disabled = false;
+
+            var curr = words[index];
+            var isEE = mode.endsWith('-ee');
+            document.getElementById('question').textContent = isEE ? curr[0] : curr[1];
+            document.getElementById('progress').textContent = 'Küsimus ' + (index + 1) + ' / ' + words.length;
+
+            if (mode.startsWith('write')) {
+                document.getElementById('write-box').classList.remove('hidden');
+                document.getElementById('choice-box').classList.add('hidden');
+            } else {
+                document.getElementById('write-box').classList.add('hidden');
+                document.getElementById('choice-box').classList.remove('hidden');
+                makeChoices(curr[1]);
+            }
+        }
+
+        function makeChoices(correct) {
+            var box = document.getElementById('choice-box');
+            box.innerHTML = '';
+            var options = [correct];
+            
+            words.forEach(function(w) {
+                if (options.indexOf(w[1]) === -1 && options.length < 4) options.push(w[1]);
+            });
+            options.sort(function() { return Math.random() - 0.5; });
+
+            options.forEach(function(opt) {
+                var btn = document.createElement('button');
+                btn.textContent = opt;
+                btn.onclick = function() { validate(opt === correct, correct); };
+                box.appendChild(btn);
+            });
+        }
+
+        function checkAnswer() {
+            var input = document.getElementById('answer-input');
+            if (input.disabled) return;
+            input.disabled = true;
+
+            var user = input.value.trim().toLowerCase();
+            var isEE = mode.endsWith('-ee');
+            var correct = isEE ? words[index][1] : words[index][0];
+
+            validate(user === correct.toLowerCase(), correct);
+        }
+
+        function validate(isCorrect, correct) {
+            var fb = document.getElementById('feedback');
+            if (isCorrect) {
+                score++;
+                fb.textContent = '✅ Õige!';
+                fb.style.color = 'green';
+            } else {
+                fb.textContent = '❌ Vale! Õige: ' + correct;
+                fb.style.color = 'red';
+            }
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            index++;
+            if (index < words.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('question').textContent = 'Töö tehtud!';
+                document.getElementById('write-box').classList.add('hidden');
+                document.getElementById('choice-box').classList.add('hidden');
+                document.getElementById('feedback').textContent = 'Tulemus: ' + score + ' / ' + words.length;
+                document.getElementById('next-btn').classList.add('hidden');
+            }
+        }
+
+        function showMenu() {
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+        }
+
+        updateUnits();
+    </script>
 </body>
 </html>
