@@ -100,6 +100,7 @@
                 <label><strong>Vali korrutustabeli arvud:</strong></label>
                 <select id="math-table-select">
                     <option value="all">Kõik (1 - 10)</option>
+                    <option value="1">Ainult 1-ga korrutamine</option>
                     <option value="2">Ainult 2-ga korrutamine</option>
                     <option value="3">Ainult 3-ga korrutamine</option>
                     <option value="4">Ainult 4-ga korrutamine</option>
@@ -173,13 +174,12 @@
     <script>
         var DATA = {};
         var currentTab = 'words';
-        var words = []; // Hoiab praeguseid küsimusi
+        var words = [];
         var index = 0;
         var score = 0;
         var mode = '';
         var currentAudioWord = '';
 
-        // Tabide vahetamine
         function switchTab(tab) {
             currentTab = tab;
             document.getElementById('btn-tab-words').classList.toggle('active', tab === 'words');
@@ -328,7 +328,7 @@
 
             var generated = [];
             for (var i = 0; i < count; i++) {
-                var num1 = (selectedTable === 'all') ? Math.floor(Math.random() * 9) + 2 : parseInt(selectedTable);
+                var num1 = (selectedTable === 'all') ? Math.floor(Math.random() * 10) + 1 : parseInt(selectedTable);
                 var num2 = Math.floor(Math.random() * 10) + 1;
                 var qText = num1 + ' × ' + num2;
                 var aText = String(num1 * num2);
@@ -336,7 +336,7 @@
             }
 
             words = generated;
-            document.getElementById('audio-btn').style.display = 'none'; // Korrutamisel pole helisümbolit vaja
+            document.getElementById('audio-btn').style.display = 'none';
             startGenericGame();
         }
 
@@ -365,7 +365,6 @@
             var curr = words[index];
             var isEE = mode.endsWith('-ee');
             
-            // Sõnade puhul: isEE kontrollib suunda, korrutamisel on küsimus otse indeksis 0
             if (currentTab === 'words') {
                 currentAudioWord = isEE ? curr[0] : curr[1];
                 document.getElementById('question').textContent = isEE ? curr[0] : curr[1];
@@ -406,7 +405,6 @@
                     if (options.indexOf(rand) === -1 && rand) options.push(rand);
                 }
             } else {
-                // Korrutamise suvalised valikvastused
                 var correctNum = parseInt(correct);
                 while (options.length < 4) {
                     var offset = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
@@ -531,7 +529,7 @@
             tbody.innerHTML = '';
 
             for (var i = 0; i < count; i++) {
-                var num1 = (selectedTable === 'all') ? Math.floor(Math.random() * 9) + 2 : parseInt(selectedTable);
+                var num1 = (selectedTable === 'all') ? Math.floor(Math.random() * 10) + 1 : parseInt(selectedTable);
                 var num2 = Math.floor(Math.random() * 10) + 1;
                 var tr = document.createElement('tr');
                 tr.innerHTML = '<td>' + (i + 1) + '</td><td><strong>' + num1 + ' × ' + num2 + ' = </strong></td><td class="answer-cell"></td>';
