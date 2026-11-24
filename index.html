@@ -14,8 +14,9 @@
         .tab-btn { background: #e0e0e0; color: #333; border: none; padding: 10px; flex: 1; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .tab-btn.active { background: #3498db; color: white; }
 
-        select, input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; box-sizing: border-box; }
-        button { background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        select, input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; box-sizing: border-box; border-radius: 4px; }
+        select, input { border: 1px solid #ccc; }
+        button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background: #2980b9; }
         .secondary-btn { background: #95a5a6; }
         .secondary-btn:hover { background: #7f8c8d; }
@@ -27,6 +28,13 @@
         
         .range-container { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
         .range-container input { width: 50%; text-align: center; margin: 0; }
+
+        /* Reaalajas punaseks minemine valesti kirjutamisel */
+        #answer-input.typing-error {
+            color: #d92d20;
+            border: 2px solid #d92d20;
+            background-color: #fef3f2;
+        }
         
         /* Printimise stiilid */
         @media print {
@@ -340,6 +348,42 @@
             startGenericGame();
         }
 
+        // ==================== REAALAJAS KIRJUTAMISE KONTROLL ====================
+        function getAcceptableAnswers(correctText) {
+            var base = String(correctText || '').trim();
+            if (!base) return [];
+            var variants = [base];
+
+            // Jagab alternatiivid (nt "valgus, valgustus, tuli" või "tüütama; vihastama" või "sisse/välja")
+            base.split(/[,;\/]/).forEach(function(part) {
+                var cleaned = part.trim();
+                if (cleaned) variants.push(cleaned);
+            });
+
+            return variants.map(function(v) { return v.toLowerCase(); });
+        }
+
+        function updateLiveTypingColor() {
+            var input = document.getElementById('answer-input');
+            if (!input || input.disabled || !words[index]) return;
+
+            var typed = input.value.toLowerCase();
+            if (typed.length === 0) {
+                input.classList.remove('typing-error');
+                return;
+            }
+
+            var curr = words[index];
+            var correct = (currentTab === 'words') ? (mode.endsWith('-ee') ? curr[1] : curr[0]) : curr[1];
+            var acceptable = getAcceptableAnswers(correct);
+
+            var matchesPrefix = acceptable.some(function(variant) {
+                return variant.startsWith(typed);
+            });
+
+            input.classList.toggle('typing-error', !matchesPrefix);
+        }
+
         // ==================== ÜHINE GAME-ENGINE ====================
         function startGenericGame() {
             index = 0;
@@ -349,7 +393,9 @@
             document.getElementById('section-math').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
 
-            document.getElementById('answer-input').onkeypress = function(e) {
+            var answerInput = document.getElementById('answer-input');
+            answerInput.oninput = updateLiveTypingColor;
+            answerInput.onkeypress = function(e) {
                 if (e.key === 'Enter') checkAnswer();
             };
 
@@ -359,8 +405,10 @@
         function loadQuestion() {
             document.getElementById('feedback').textContent = '';
             document.getElementById('next-btn').classList.add('hidden');
-            document.getElementById('answer-input').value = '';
-            document.getElementById('answer-input').disabled = false;
+            var answerInput = document.getElementById('answer-input');
+            answerInput.value = '';
+            answerInput.disabled = false;
+            answerInput.classList.remove('typing-error');
 
             var curr = words[index];
             var isEE = mode.endsWith('-ee');
@@ -377,7 +425,7 @@
             if (mode.startsWith('write')) {
                 document.getElementById('write-box').classList.remove('hidden');
                 document.getElementById('choice-box').classList.add('hidden');
-                document.getElementById('answer-input').focus();
+                answerInput.focus();
             } else {
                 document.getElementById('write-box').classList.add('hidden');
                 document.getElementById('choice-box').classList.remove('hidden');
@@ -431,8 +479,11 @@
             var user = input.value.trim().toLowerCase();
             var curr = words[index];
             var correct = (currentTab === 'words') ? (mode.endsWith('-ee') ? curr[1] : curr[0]) : curr[1];
+            var acceptable = getAcceptableAnswers(correct);
 
-            validate(user === correct.toLowerCase(), correct);
+            var isCorrect = acceptable.indexOf(user) !== -1;
+            input.classList.toggle('typing-error', !isCorrect);
+            validate(isCorrect, correct);
         }
 
         function validate(isCorrect, correct) {
